@@ -22,13 +22,20 @@ interface Server {
 interface SidebarProps {
   onChannelSelect?: (channelId: string, channelName: string) => void;
   selectedChannelId?: string;
+  refreshTrigger?: number;
 }
 
-export function Sidebar({ onChannelSelect, selectedChannelId }: SidebarProps) {
+export function Sidebar({ onChannelSelect, selectedChannelId, refreshTrigger }: SidebarProps) {
   const [selectedServer, setSelectedServer] = useState<string>('');
   const { signOut } = useAuth();
-  const { servers, loading } = useServerData();
+  const { servers, loading, refetch } = useServerData();
   const { profile } = useProfile();
+
+  useEffect(() => {
+    if (refreshTrigger && refetch) {
+      refetch();
+    }
+  }, [refreshTrigger, refetch]);
 
   useEffect(() => {
     if (servers.length > 0 && !selectedServer) {
@@ -48,7 +55,7 @@ export function Sidebar({ onChannelSelect, selectedChannelId }: SidebarProps) {
 
   if (loading) {
     return (
-      <div className="w-80 h-screen bg-darker-bg border-r border-neon-cyan/30 flex items-center justify-center">
+      <div className="w-80 h-full bg-darker-bg border-r border-neon-cyan/30 flex items-center justify-center">
         <div className="text-neon-cyan font-retro">Loading...</div>
       </div>
     );
@@ -56,11 +63,11 @@ export function Sidebar({ onChannelSelect, selectedChannelId }: SidebarProps) {
 
   if (servers.length === 0) {
     return (
-      <div className="w-80 h-screen bg-darker-bg border-r border-neon-cyan/30 flex items-center justify-center">
+      <div className="w-80 h-full bg-darker-bg border-r border-neon-cyan/30 flex items-center justify-center">
         <div className="text-center p-4">
           <div className="text-neon-cyan font-retro mb-2">No Servers Found</div>
           <div className="text-muted-foreground font-mono text-sm">
-            You're not a member of any servers yet.
+            Create your first server to get started!
           </div>
         </div>
       </div>
@@ -68,7 +75,7 @@ export function Sidebar({ onChannelSelect, selectedChannelId }: SidebarProps) {
   }
 
   return (
-    <div className="w-80 h-screen bg-darker-bg border-r border-neon-cyan/30 flex">
+    <div className="w-80 h-full bg-darker-bg border-r border-neon-cyan/30 flex">
       {/* Server List */}
       <div className="w-20 bg-card/50 border-r border-neon-cyan/20 p-2 space-y-2">
         {servers.map((server) => (

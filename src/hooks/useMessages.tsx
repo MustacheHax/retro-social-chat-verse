@@ -31,7 +31,8 @@ export function useMessages(channelId: string | null) {
             id,
             content,
             created_at,
-            profiles (
+            user_id,
+            profiles!inner (
               username
             )
           `)
@@ -83,7 +84,8 @@ export function useMessages(channelId: string | null) {
               id,
               content,
               created_at,
-              profiles (
+              user_id,
+              profiles!inner (
                 username
               )
             `)

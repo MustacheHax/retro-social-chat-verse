@@ -1,14 +1,51 @@
 
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/Sidebar';
 import { ChatArea } from '@/components/ChatArea';
 import { ProfilePanel } from '@/components/ProfilePanel';
 
 const Index = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const [selectedChannelId, setSelectedChannelId] = useState<string>('');
+  const [selectedChannelName, setSelectedChannelName] = useState<string>('');
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
+
+  const handleChannelSelect = (channelId: string, channelName: string) => {
+    setSelectedChannelId(channelId);
+    setSelectedChannelName(channelName);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-darker-bg text-foreground font-mono dark flex items-center justify-center">
+        <div className="text-neon-cyan font-retro text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-darker-bg text-foreground font-mono dark">
       <div className="flex h-screen w-full">
-        <Sidebar />
-        <ChatArea />
+        <Sidebar 
+          onChannelSelect={handleChannelSelect}
+          selectedChannelId={selectedChannelId}
+        />
+        <ChatArea 
+          selectedChannelId={selectedChannelId}
+          selectedChannelName={selectedChannelName}
+        />
         <ProfilePanel />
       </div>
       

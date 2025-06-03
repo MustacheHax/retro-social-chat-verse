@@ -2,54 +2,40 @@
 import { useState } from 'react';
 import { MessageSquare, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useMessages } from '@/hooks/useMessages';
 
-interface Message {
-  id: string;
-  user: string;
-  content: string;
-  timestamp: string;
-  avatar?: string;
+interface ChatAreaProps {
+  selectedChannelId?: string;
+  selectedChannelName?: string;
 }
 
-const mockMessages: Message[] = [
-  {
-    id: '1',
-    user: 'CyberPunk_42',
-    content: 'Welcome to the retro future! 🌃',
-    timestamp: '14:23'
-  },
-  {
-    id: '2',
-    user: 'NeonDreamer',
-    content: 'Love the new theme! This feels like the 90s but better ✨',
-    timestamp: '14:24'
-  },
-  {
-    id: '3',
-    user: 'RetroWave_88',
-    content: 'Anyone up for some gaming? Got a new plugin that adds voice effects!',
-    timestamp: '14:25'
-  },
-  {
-    id: '4',
-    user: 'SynthMaster',
-    content: 'The encryption on this platform is solid 🔒 Privacy first!',
-    timestamp: '14:26'
-  }
-];
-
-export function ChatArea() {
+export function ChatArea({ selectedChannelId, selectedChannelName }: ChatAreaProps) {
   const [message, setMessage] = useState('');
-  const [messages] = useState(mockMessages);
+  const { messages, loading, sendMessage } = useMessages(selectedChannelId || null);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (message.trim()) {
-      // In a real app, this would send the message to the server
-      console.log('Sending message:', message);
+    if (message.trim() && selectedChannelId) {
+      await sendMessage(message);
       setMessage('');
     }
   };
+
+  if (!selectedChannelId) {
+    return (
+      <div className="flex-1 flex items-center justify-center h-screen">
+        <div className="text-center">
+          <MessageSquare className="w-16 h-16 text-neon-cyan/50 mx-auto mb-4" />
+          <h2 className="font-retro font-bold text-xl text-neon-cyan mb-2">
+            Welcome to RetroComm
+          </h2>
+          <p className="text-muted-foreground font-mono">
+            Select a channel to start chatting
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 flex flex-col h-screen">
@@ -58,34 +44,51 @@ export function ChatArea() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <MessageSquare className="w-5 h-5 text-neon-cyan" />
-            <h2 className="font-retro font-bold text-lg text-neon-cyan"># general</h2>
+            <h2 className="font-retro font-bold text-lg text-neon-cyan">
+              # {selectedChannelName}
+            </h2>
             <div className="text-sm text-muted-foreground font-mono">
-              The main hangout spot for RetroHub
+              Encrypted channel communications
             </div>
           </div>
           <div className="flex items-center space-x-2 text-sm text-muted-foreground">
             <Users className="w-4 h-4" />
-            <span className="font-mono">12 online</span>
+            <span className="font-mono">Online</span>
           </div>
         </div>
       </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 scan-lines relative">
-        {messages.map((msg) => (
-          <div key={msg.id} className="flex space-x-3 hover:bg-neon-cyan/5 p-2 rounded transition-colors">
-            <div className="w-10 h-10 rounded-full bg-retro-gradient flex items-center justify-center text-darker-bg font-retro font-bold">
-              {msg.user.charAt(0).toUpperCase()}
-            </div>
-            <div className="flex-1">
-              <div className="flex items-baseline space-x-2 mb-1">
-                <span className="font-retro font-bold text-neon-cyan">{msg.user}</span>
-                <span className="text-xs text-muted-foreground font-mono">{msg.timestamp}</span>
+        {loading ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-neon-cyan font-retro">Loading messages...</div>
+          </div>
+        ) : messages.length === 0 ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <div className="text-muted-foreground font-mono mb-2">No messages yet</div>
+              <div className="text-sm text-muted-foreground font-mono">
+                Be the first to send a message in #{selectedChannelName}
               </div>
-              <div className="text-foreground font-mono">{msg.content}</div>
             </div>
           </div>
-        ))}
+        ) : (
+          messages.map((msg) => (
+            <div key={msg.id} className="flex space-x-3 hover:bg-neon-cyan/5 p-2 rounded transition-colors">
+              <div className="w-10 h-10 rounded-full bg-retro-gradient flex items-center justify-center text-darker-bg font-retro font-bold">
+                {msg.user.charAt(0).toUpperCase()}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-baseline space-x-2 mb-1">
+                  <span className="font-retro font-bold text-neon-cyan">{msg.user}</span>
+                  <span className="text-xs text-muted-foreground font-mono">{msg.timestamp}</span>
+                </div>
+                <div className="text-foreground font-mono">{msg.content}</div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Message Input */}
@@ -96,7 +99,7 @@ export function ChatArea() {
               type="text"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Send encrypted message to #general..."
+              placeholder={`Send encrypted message to #${selectedChannelName}...`}
               className={cn(
                 "w-full p-3 rounded-lg bg-darker-bg border border-neon-cyan/30",
                 "text-foreground placeholder-muted-foreground font-mono",

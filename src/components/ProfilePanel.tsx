@@ -2,35 +2,32 @@
 import { useState } from 'react';
 import { User, Bell, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-interface ProfileData {
-  username: string;
-  status: string;
-  bio: string;
-  topFriends: string[];
-  customSections: { title: string; content: string }[];
-}
-
-const mockProfile: ProfileData = {
-  username: 'RetroUser90',
-  status: 'Vibing in the neon matrix 🌈',
-  bio: 'Love 90s aesthetics, encrypted chats, and retro gaming. Plugin developer by night, synthwave enthusiast by day.',
-  topFriends: ['CyberPunk_42', 'NeonDreamer', 'SynthMaster', 'RetroWave_88'],
-  customSections: [
-    {
-      title: 'Favorite Plugins',
-      content: 'VoiceEffects Pro, RetroThemes, CyberSecurity Suite'
-    },
-    {
-      title: 'Now Playing',
-      content: '🎵 Carpenter Brut - Turbo Killer'
-    }
-  ]
-};
+import { useProfile } from '@/hooks/useProfile';
 
 export function ProfilePanel() {
   const [isEditing, setIsEditing] = useState(false);
-  const [profile] = useState(mockProfile);
+  const { profile, loading } = useProfile();
+
+  if (loading) {
+    return (
+      <div className="w-80 h-screen bg-darker-bg border-l border-neon-cyan/30 flex items-center justify-center">
+        <div className="text-neon-cyan font-retro">Loading profile...</div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="w-80 h-screen bg-darker-bg border-l border-neon-cyan/30 flex items-center justify-center">
+        <div className="text-center p-4">
+          <div className="text-neon-cyan font-retro mb-2">Profile Not Found</div>
+          <div className="text-muted-foreground font-mono text-sm">
+            Unable to load profile data
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-80 h-screen bg-darker-bg border-l border-neon-cyan/30 overflow-y-auto">
@@ -66,45 +63,6 @@ export function ProfilePanel() {
           {profile.bio}
         </p>
       </div>
-
-      {/* Top Friends (MySpace style) */}
-      <div className="p-4 border-b border-neon-cyan/20">
-        <h3 className="font-retro font-bold text-electric-blue mb-3 uppercase tracking-wider text-sm">
-          Top Friends (4)
-        </h3>
-        <div className="grid grid-cols-2 gap-2">
-          {profile.topFriends.map((friend, index) => (
-            <div
-              key={friend}
-              className={cn(
-                "p-2 rounded retro-card text-center hover:retro-glow transition-all duration-200",
-                "cursor-pointer"
-              )}
-            >
-              <div className="w-8 h-8 mx-auto mb-1 rounded-full bg-neon-lime flex items-center justify-center">
-                <span className="text-xs font-retro font-bold text-darker-bg">
-                  {friend.charAt(0)}
-                </span>
-              </div>
-              <div className="text-xs font-mono text-foreground truncate">
-                {friend}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Custom Sections */}
-      {profile.customSections.map((section, index) => (
-        <div key={index} className="p-4 border-b border-neon-cyan/20">
-          <h3 className="font-retro font-bold text-retro-purple mb-2 uppercase tracking-wider text-sm">
-            {section.title}
-          </h3>
-          <p className="text-foreground font-mono text-sm">
-            {section.content}
-          </p>
-        </div>
-      ))}
 
       {/* Plugin Status */}
       <div className="p-4 border-b border-neon-cyan/20">
